@@ -1,0 +1,101 @@
+version: '3.6'
+services:
+  postgres:
+    image: postgres:12
+    restart: always
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_PASSWORD: $POSTGRES_PASSWORD
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+    networks:
+      - project
+
+  api:
+    image: api
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    depends_on:
+      - "postgres"
+    ports:
+      - ${IP}:${API_PORT}:${API_PORT}
+    environment:
+      SCHEMA: $SCHEMA
+      POSTGRES_PASSWORD: $POSTGRES_PASSWORD
+    restart: always
+    tty: true
+    volumes:
+      - ./api:/api
+    networks:
+      - project
+    # command: bash entry_point.sh
+
+  front:
+    image: front
+    build:
+      context: ./front
+      dockerfile: Dockerfile
+    depends_on:
+      - "api"
+    ports:
+      - ${IP}:${FRONT_PORT}:${FRONT_PORT}
+    environment:
+      FRONT_PORT: $FRONT_PORT
+      API_PORT: $API_PORT
+    restart: always
+    tty: true
+    volumes:
+      - ./front:/front
+    networks:
+      - project
+    # command: bash entry_point.sh
+
+volumes:
+  db_data:
+
+networks:
+  project:
+    driver: bridge
+
+  # hasura:
+  #   image: hasura/graphql-engine:v1.3.2
+  #   ports:
+  #     - ${IP}:${HASURA_PORT}:${HASURA_PORT}
+  #   depends_on:
+  #     - "postgres"
+  #   restart: always
+  #   tty: true
+  #   environment:
+  #     HASURA_GRAPHQL_DATABASE_URL: postgres://postgres:${POSTGRES_PASSWORD}@postgres:${POSTGRES_PORT}/$SCHEMA
+  #     ## enable the console served by server
+  #     HASURA_GRAPHQL_ENABLE_CONSOLE: "true" # set to "false" to disable console
+  #     ## enable debugging mode. It is recommended to disable this in production
+  #     HASURA_GRAPHQL_DEV_MODE: "true"
+  #     HASURA_GRAPHQL_ENABLED_LOG_TYPES: startup, http-log, webhook-log, websocket-log, query-log
+  #     ## uncomment next line to set an admin secret
+  #     HASURA_GRAPHQL_ADMIN_SECRET: "Mm018001"
+  #     # HASURA AUTH0 : https://qiita.com/shirakiyo/items/72866f19484129d0f100
+  #     # Setting up your JWT verification server
+  #     # HASURA_GRAPHQL_JWT_SECRET: "anonymous"
+  #   networks:
+  #     - project
+
+  # web:
+  #     container_name: web
+  #     image: nginx:alpine
+  #     depends_on:
+  #         # `api`サービス（コンテナ）が先に起動している必要があるので`depends_on`を指定しておく
+  #         - api
+  #     ports:
+  #         # ポートマッピング： "ホストOSのポート:コンテナ(Nginx)のポート"
+  #         - ${IP}:${NGINX_PORT}:80
+  #     volumes:
+  #         # volumeマウント： "ホストOSのパス:コンテナにおけるパス"
+  #         - ./web/nginx/conf.d:/etc/nginx/conf.d
+  #         - ./web/htpasswd/conf.d/.htpasswd:/etc/nginx/.htpasswd
+  #     restart: always
+  #     # command: apt-get update 66 apt-get install apache2-utils -y
+  #     networks:
+  #         - project

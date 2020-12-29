@@ -1,0 +1,12 @@
+{
+	"generators": {
+		"5409964e": {
+			"type": "local",
+			"path": "/front/.npm/_npx/21/lib/node_modules/create-nuxt-app/lib",
+			"hash": "5409964e"
+		}
+	},
+	"answers": {
+		"5409964e__npm__": {}
+	}
+}
