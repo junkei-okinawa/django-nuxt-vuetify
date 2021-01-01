@@ -30,12 +30,12 @@ services:
       - ./api:/api
     networks:
       - project
-    # command: bash entry_point.sh
+    command: bash entry_point.sh
 
-  front:
-    image: front
+  frontend:
+    image: frontend
     build:
-      context: ./front
+      context: ./frontend
       dockerfile: Dockerfile
     depends_on:
       - "api"
@@ -47,10 +47,10 @@ services:
     restart: always
     tty: true
     volumes:
-      - ./front:/front
+      - ./frontend:/frontend
     networks:
       - project
-    # command: bash entry_point.sh
+    command: yarn dev
 
 volumes:
   db_data:
